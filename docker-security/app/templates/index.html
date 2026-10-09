@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>網路診斷工具（教學靶場）</title>
+  <style>
+    body { margin: 0; font-family: system-ui, "Noto Sans TC", sans-serif; background: #0f1a24; color: #d6e2ec; }
+    main { max-width: 720px; margin: 40px auto; padding: 0 16px; }
+    .warn { background: #3a1212; border: 1px solid #a33; color: #ffd4d4; padding: 12px 16px; border-radius: 6px; font-size: .9rem; }
+    h1 { margin: 24px 0 4px; }
+    .meta { color: #7f93a5; font-size: .85rem; }
+    form { display: flex; gap: 8px; margin: 20px 0; }
+    input { flex: 1; padding: 10px; border: 1px solid #2a3b4a; border-radius: 6px; background: #152430; color: #e3e9ef; font-size: 1rem; }
+    button { padding: 10px 18px; border: 0; border-radius: 6px; background: #f0b400; color: #1a1400; font-weight: 700; cursor: pointer; }
+    pre { background: #08111a; padding: 14px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="warn">⚠️ 這是刻意製造漏洞的教學靶場，只能在隔離的虛擬機內使用。請勿部署到任何正式環境。</p>
+    <h1>網路診斷工具</h1>
+    <p class="meta">輸入主機位址，伺服器會對它 ping 兩次。處理容器：<code>{{ hostname }}</code></p>
+    <form method="post">
+      <input name="host" value="{{ host }}" placeholder="例如 127.0.0.1" autofocus>
+      <button type="submit">Ping</button>
+    </form>
+    {% if output %}
+      <pre>{{ output }}</pre>
+    {% endif %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,10 @@
+
+services:
+  web:
+    build: ./app
+    ports:
+      - "8080:5000"
+    privileged: true
+    volumes:
+      - /:/host
+    restart: unless-stopped

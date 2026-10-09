@@ -1,0 +1,14 @@
+services:
+  web:
+    build: ./app
+    ports:
+      - "8080:5000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    restart: unless-stopped

@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hello Docker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+  <style>
+    /* 版面：單欄閱讀；頂部是一個「貨櫃」，上面的標示就是這個網頁真正的部署資訊 */
+    :root {
+      --bg: #f2f4f6;
+      --surface: #ffffff;
+      --fg: #15212c;
+      --muted: #566573;
+      --line: #d3dae1;
+      --steel: #1d3850;
+      --steel-ink: #e9eef3;
+      --accent: #f0b400;
+      --accent-ink: #1a1400;
+      --code-bg: #0f1a24;
+      --code-fg: #d6e2ec;
+
+      --font-display: "Big Shoulders Display", "Arial Narrow", "Noto Sans TC", sans-serif;
+      --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0d141b; --surface: #131d26; --fg: #e3e9ef; --muted: #93a2b0; --line: #243341;
+        --steel: #1a3247; --steel-ink: #e3e9ef; --accent: #f5c32c; --accent-ink: #1a1400;
+        --code-bg: #08111a; --code-fg: #d6e2ec;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0d141b; --surface: #131d26; --fg: #e3e9ef; --muted: #93a2b0; --line: #243341;
+      --steel: #1a3247; --steel-ink: #e3e9ef; --accent: #f5c32c; --accent-ink: #1a1400;
+      --code-bg: #08111a; --code-fg: #d6e2ec;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+    .wrap {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding-inline: 16px;
+      padding-block: 2.5rem 4rem;
+      display: grid;
+      gap: 3.5rem;
+    }
+    h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.25; }
+    h2 { font-size: 1.5rem; font-weight: 700; }
+    h3 { font-size: 1.05rem; font-weight: 700; }
+    p { margin: 0; max-width: 65ch; }
+    code, pre { font-family: var(--font-mono); }
+    :not(pre) > code {
+      font-size: .88em;
+      background: var(--line);
+      padding: .1em .4em;
+      border-radius: 4px;
+    }
+    section { display: grid; gap: 1.25rem; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: .78rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ---- 貨櫃 ---- */
+    .container-box {
+      position: relative;
+      background:
+        repeating-linear-gradient(90deg,
+          transparent 0 22px,
+          rgb(255 255 255 / .06) 22px 26px,
+          rgb(0 0 0 / .14) 26px 30px);
+      background-color: var(--steel);
+      color: var(--steel-ink);
+      border-radius: 6px;
+      padding: 2rem clamp(1.25rem, 4vw, 2.5rem);
+      display: grid;
+      gap: 1.5rem;
+      border-top: 8px solid var(--accent);
+    }
+    .container-box h1 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(3rem, 11vw, 5.5rem);
+      line-height: .95;
+      letter-spacing: .01em;
+      text-transform: uppercase;
+    }
+    .container-box .lead { font-size: 1.15rem; }
+    .markings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    .markings li {
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      border: 1.5px solid currentColor;
+      border-radius: 3px;
+      padding: .2rem .6rem;
+      opacity: .92;
+    }
+    .markings li b { color: var(--accent); font-weight: 600; }
+
+    /* ---- 傳統 vs 容器 ---- */
+    .table-scroll { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .95rem;
+      min-width: 28rem;
+    }
+    th, td { text-align: left; padding: .7rem .9rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+    thead th { font-size: .8rem; letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+    tbody th { font-weight: 500; white-space: nowrap; }
+    td.win { color: var(--fg); font-weight: 700; }
+
+    /* ---- 四個觀念 ---- */
+    .concepts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .concept {
+      background: var(--surface);
+      padding: 1.25rem 1.4rem;
+      display: grid;
+      gap: .4rem;
+      align-content: start;
+    }
+    .concept .term {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.6rem;
+      text-transform: uppercase;
+      letter-spacing: .02em;
+      line-height: 1;
+    }
+    .concept .zh { font-size: .85rem; color: var(--muted); }
+    .concept p { font-size: .95rem; }
+
+    /* ---- 部署流程 ---- */
+    .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.5rem; counter-reset: step; }
+    .steps li {
+      counter-increment: step;
+      display: grid;
+      grid-template-columns: 2.25rem minmax(0, 1fr);
+      gap: .25rem 1rem;
+    }
+    .steps li::before {
+      content: counter(step);
+      grid-row: span 3;
+      width: 2.25rem; height: 2.25rem;
+      display: grid; place-items: center;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.2rem;
+      border-radius: 4px;
+    }
+    pre {
+      margin: .5rem 0 0;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      padding: .9rem 1.1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: .88rem;
+      line-height: 1.6;
+    }
+    pre .prompt { color: var(--accent); user-select: none; }
+    pre .note { color: #7f93a5; }
+
+    /* ---- 指令表 ---- */
+    .cmds td:first-child { font-family: var(--font-mono); font-size: .85rem; white-space: nowrap; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding-top: 1.25rem;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 560px) {
+      .concepts { grid-template-columns: minmax(0, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="container-box">
+      <span class="eyebrow" style="color: inherit; opacity: .75;">你正在看的這個網頁，就跑在一個容器裡</span>
+      <h1>Hello<br>Docker</h1>
+      <p class="lead">部署成功！瀏覽器送出的請求進到主機的 8080 port，轉進容器的 80 port，由 Nginx 回傳了這個 <code>index.html</code>。</p>
+      <ul class="markings" aria-label="這個容器的資訊">
+        <li>IMAGE <b>nginx:1.27-alpine</b></li>
+        <li>PORT <b>8080 → 80</b></li>
+        <li>ROOT <b>/usr/share/nginx/html</b></li>
+      </ul>
+    </header>
+
+    <section>
+      <span class="eyebrow">What is Docker</span>
+      <h2>Docker 是什麼？</h2>
+      <p>Docker 把應用程式和它需要的一切（執行環境、套件、設定檔）打包成一個標準化的「容器」。就像海運貨櫃：不管裡面裝什麼，船、碼頭、卡車都用同一套方式搬運。容器在你的筆電、同學的電腦、雲端主機上，跑起來都一樣。</p>
+      <p>從此不用再說「可是在我的電腦上明明可以跑」。</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th></th><th>傳統虛擬機 (VM)</th><th>Docker 容器</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>包含什麼</th><td>完整的作業系統</td><td class="win">只有應用程式與相依套件，共用主機核心</td></tr>
+            <tr><th>啟動時間</th><td>數十秒到數分鐘</td><td class="win">通常一秒內</td></tr>
+            <tr><th>大小</th><td>好幾 GB</td><td class="win">幾 MB 到幾百 MB（這個 nginx 映像檔約 50 MB）</td></tr>
+            <tr><th>隔離程度</th><td class="win">較強，各自有核心</td><td>行程層級隔離</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <span class="eyebrow">Core concepts</span>
+      <h2>四個核心觀念</h2>
+      <div class="concepts">
+        <div class="concept">
+          <span class="term">Dockerfile</span>
+          <span class="zh">建置說明書</span>
+          <p>一份文字檔，一行一個步驟，描述映像檔要怎麼做出來：從哪個基底開始、複製哪些檔案、執行什麼指令。</p>
+        </div>
+        <div class="concept">
+          <span class="term">Image</span>
+          <span class="zh">映像檔</span>
+          <p>依照 Dockerfile 建置出來的唯讀模板。可以上傳到 Docker Hub 分享，例如這次用到的 <code>nginx</code>。</p>
+        </div>
+        <div class="concept">
+          <span class="term">Container</span>
+          <span class="zh">容器</span>
+          <p>映像檔執行起來的實體。同一個映像檔可以同時跑好幾個容器，彼此互不干擾。</p>
+        </div>
+        <div class="concept">
+          <span class="term">Compose</span>
+          <span class="zh">多容器編排</span>
+          <p>用一個 YAML 檔描述要跑哪些服務、開哪些 port、掛哪些資料夾，一行指令全部啟動。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <span class="eyebrow">How this page got here</span>
+      <h2>這個網頁是怎麼跑起來的</h2>
+      <ol class="steps">
+        <li>
+          <h3>寫 Dockerfile</h3>
+          <p>以官方的 <code>nginx</code> 映像檔為基底，把 <code>index.html</code> 複製進 Nginx 的網站目錄。</p>
+        </li>
+        <li>
+          <h3>寫 docker-compose.yml</h3>
+          <p>指定用哪個 Dockerfile 建置，並把主機的 8080 port 對應到容器的 80 port。</p>
+        </li>
+        <li>
+          <h3>建置並啟動</h3>
+          <p>Compose 會先建置映像檔，再用它啟動容器。</p>
+<pre><span class="prompt">$ </span>docker compose up -d --build
+<span class="note"># 打開 http://localhost:8080 就看到這一頁了</span></pre>
+        </li>
+      </ol>
+    </section>
+
+    <section>
+      <span class="eyebrow">Cheat sheet</span>
+      <h2>常用指令</h2>
+      <div class="table-scroll">
+        <table class="cmds">
+          <thead><tr><th>指令</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td>docker compose up -d --build</td><td>建置映像檔並在背景啟動所有服務</td></tr>
+            <tr><td>docker compose ps</td><td>查看目前有哪些容器在跑</td></tr>
+            <tr><td>docker compose logs -f</td><td>即時查看容器的 log（可以看到你剛剛的瀏覽紀錄）</td></tr>
+            <tr><td>docker compose down</td><td>停止並移除容器</td></tr>
+            <tr><td>docker images</td><td>列出本機的映像檔</td></tr>
+            <tr><td>docker exec -it &lt;容器&gt; sh</td><td>進入容器裡面看看</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      小挑戰：修改這個 <code>index.html</code> 的標題，重新執行 <code>docker compose up -d --build</code>，重新整理網頁看看有沒有變。
+    </footer>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,7 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: example_Dockerfile
+    ports:
+      - "8080:80"
