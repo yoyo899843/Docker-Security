@@ -1,7 +1,0 @@
-# 使用官方 nginx 映像檔
-FROM nginx:1.27-alpine
-
-# 把網頁複製到 nginx 預設的網站目錄
-COPY index.html /usr/share/nginx/html/index.html
-
-EXPOSE 80
