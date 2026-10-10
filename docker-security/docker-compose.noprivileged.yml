@@ -1,0 +1,9 @@
+
+services:
+  web:
+    build: ./app
+    ports:
+      - "8080:5000"
+    volumes:
+      - /:/host
+    restart: unless-stopped
