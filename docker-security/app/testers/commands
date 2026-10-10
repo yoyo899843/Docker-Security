@@ -1,0 +1,8 @@
+apt-get update
+apt-get install -y build-essential linux-headers-$(uname -r)
+make
+insmod ./hello_kmod.ko
+dmesg | tail -5
+
+sudo dmesg | tail -5
+lsmod | grep hello_kmod
