@@ -1,6 +1,6 @@
 apt-get update
 apt-get install -y build-essential linux-headers-$(uname -r)
-make
+apt-get install -y kmod
 insmod ./hello_kmod.ko
 dmesg | tail -5
 
